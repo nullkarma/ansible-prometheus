@@ -1,0 +1,39 @@
+---
+
+- name: check use_systemd override
+  debug:
+    msg: "User override - use_systemd: {{ use_systemd }}"
+  when: use_systemd is defined
+
+- name: check if systemd is supported by host
+  set_fact:
+    use_systemd: True
+  when: ansible_os_family == 'RedHat' and use_systemd is not defined
+  tags:
+    - install
+
+- name: Set environment dir
+  set_fact:
+    os_env_dir: /etc/sysconfig
+  when: ansible_os_family == 'RedHat'
+
+- name: Set environment dir
+  set_fact:
+    os_env_dir: /etc/defaults
+  when: ansible_os_family == 'Debian'
+
+- name: Prometheus - Check if download URL is defined
+  set_fact:
+    prometheus_base_url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}"
+  when: prometheus_base_url is not defined
+
+- name: Alertmanager - Check if download URL is defined
+  set_fact:
+    alertmanager_base_url: "https://github.com/prometheus/alertmanager/releases/download/v{{ alertmanager_version }}"
+  when: alertmanager_base_url is not defined
+
+- name: Node Exporter - Check if download URL is defined
+  set_fact:
+    node_exporter_base_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}"
+  when: node_exporter_base_url is not defined
+

@@ -1,0 +1,80 @@
+---
+
+- name: Node Exporter - Install
+  tags:
+    - install
+  block:
+  - name: Node Exporter - Create user
+    user:
+      name: "{{ node_exporter_user }}"
+      system: yes
+
+  - name: Node Exporter - Create directories
+    file:
+      path: "{{ item }}"
+      owner: "{{ node_exporter_user }}"
+      group: "{{ node_exporter_group }}"
+      state: directory
+    with_items:
+      - "{{ node_exporter_home_dir }}"
+
+  - name: Node Exporter - Set install dir
+    set_fact:
+      node_exporter_install_dir: "{{ node_exporter_home_dir }}/node_exporter-{{ node_exporter_version }}.linux-amd64"
+
+  - name: Node Exporter - Check if current version already installed
+    stat:
+      path: "{{ node_exporter_install_dir }}"
+    register: prom
+
+  - name: Node Exporter - Check if current version already installed
+    debug:
+      msg: "Version {{ node_exporter_version }} already installed"
+    when: prom.stat.exists 
+
+  - name: Node Exporter - Download tarball 
+    get_url:
+      url: "{{ node_exporter_base_url }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+      dest: "/tmp/node_exporter-{{ node_exporter_version }}.tar.gz"
+    when: not prom.stat.exists 
+
+  - name: Node Exporter - Unarchive tarball
+    unarchive:
+      src: "/tmp/node_exporter-{{ node_exporter_version }}.tar.gz"
+      dest: "{{ node_exporter_home_dir }}"
+      remote_src: yes
+      owner: "{{ node_exporter_user }}"
+      group: "{{ node_exporter_group }}"
+    when: not prom.stat.exists 
+
+  - name: Node Exporter - Set link to new version
+    file:
+      src: "{{ node_exporter_install_dir }}"
+      dest: "{{ node_exporter_home_dir }}/current"
+      state: link
+
+  - name: Node Exporter - Set work dir
+    set_fact:
+      node_exporter_work_dir: "{{ node_exporter_home_dir }}/current"
+
+  - name: Node Exporter - create systemd unit file
+    template:
+      src: ../templates/node_exporter.systemd.j2
+      dest: /etc/systemd/system/node_exporter.service
+    notify:
+      - Node Exporter - systemd daemon-reload
+    when: use_systemd
+
+- name: Node Exporter - Configure
+  tags:
+    - config
+  block:
+  - name: Node Exporter - create env file
+    template:
+      src: ../templates/node_exporter/envvars.j2
+      dest: "{{ os_env_dir }}/node_exporter"
+      owner: "{{ node_exporter_user }}"
+      group: "{{ node_exporter_group }}"
+    notify:
+      - Node Exporter - systemd restart
+

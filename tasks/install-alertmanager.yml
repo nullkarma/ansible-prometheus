@@ -1,0 +1,93 @@
+---
+
+- name: Alertmanager - Install
+  tags:
+    - install
+  block:
+  - name: Alertmanager - Create user
+    user:
+      name: "{{ alertmanager_user }}"
+      system: yes
+
+  - name: Alertmanager - Create directories
+    file:
+      path: "{{ item }}"
+      owner: "{{ alertmanager_user }}"
+      group: "{{ alertmanager_group }}"
+      state: directory
+    with_items:
+      - "{{ alertmanager_data_dir }}"
+      - "{{ alertmanager_conf_dir }}"
+      - "{{ alertmanager_home_dir }}"
+
+  - name: Alertmanager - Set install dir
+    set_fact:
+      alertmanager_install_dir: "{{ alertmanager_home_dir }}/alertmanager-{{ alertmanager_version }}.linux-amd64"
+
+  - name: Alertmanager - Check if current version already installed
+    stat:
+      path: "{{ alertmanager_install_dir }}"
+    register: prom
+
+  - name: Alertmanager - Check if current version already installed
+    debug:
+      msg: "Version {{ alertmanager_version }} already installed"
+    when: prom.stat.exists 
+
+  - name: Alertmanager - Download tarball 
+    get_url:
+      url: "{{ alertmanager_base_url }}/alertmanager-{{ alertmanager_version }}.linux-amd64.tar.gz"
+      dest: "/tmp/alertmanager-{{ alertmanager_version }}.tar.gz"
+    when: not prom.stat.exists 
+
+  - name: Alertmanager - Unarchive tarball
+    unarchive:
+      src: "/tmp/alertmanager-{{ alertmanager_version }}.tar.gz"
+      dest: "{{ alertmanager_home_dir }}"
+      remote_src: yes
+      owner: "{{ alertmanager_user }}"
+      group: "{{ alertmanager_group }}"
+    when: not prom.stat.exists 
+
+  - name: Alertmanager - Set link to new version
+    file:
+      src: "{{ alertmanager_install_dir }}"
+      dest: "{{ alertmanager_home_dir }}/current"
+      state: link
+
+  - name: Alertmanager - Set Alertmanager work dir
+    set_fact:
+      alertmanager_work_dir: "{{ alertmanager_home_dir }}/current"
+
+  - name: Alertmanager - create systemd unit file
+    template:
+      src: ../templates/alertmanager.systemd.j2
+      dest: /etc/systemd/system/alertmanager.service
+    notify:
+      - Alertmanager - systemd daemon-reload
+    when: use_systemd
+
+- name: Alertmanager - Configure
+  tags:
+    - config
+  block:
+  - name: Alertmanager - copy default config
+    copy:
+      src: ../files/alertmanager.yml
+      dest: "{{ alertmanager_conf_dir }}/alertmanager.yml"
+      owner: "{{ alertmanager_user }}"
+      group: "{{ alertmanager_group }}"
+    notify:
+      - Alertmanager - systemd restart
+    when: alertmanager_config is not defined
+
+  - name: Alertmanager - create user config
+    template:
+      src: ../templates/alertmanager.yml.j2
+      dest: "{{ alertmanager_conf_dir }}/alertmanager.yml"
+      owner: "{{ alertmanager_user }}"
+      group: "{{ alertmanager_group }}"
+    notify:
+      - Alertmanager - systemd restart
+    when: alertmanager_config is defined
+

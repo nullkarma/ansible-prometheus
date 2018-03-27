@@ -1,0 +1,10 @@
+[Unit]
+Description=Node Exporter
+
+[Service]
+User={{ node_exporter_user }}
+EnvironmentFile={{ os_env_dir }}/node_exporter
+ExecStart={{ node_exporter_work_dir }}/node_exporter $COLLECTORS $NODE_EXPORTER_OPTS
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,92 @@
+---
+
+# Prometheus
+
+- name: Prometheus - syntax check
+  shell: "{{ prometheus_work_dir}}/promtool check config {{ prometheus_conf_dir }}/prometheus.yml"
+
+- name: Prometheus - systemd daemon-reload
+  systemd:
+    name: prometheus
+    enabled: True
+    daemon_reload: yes
+
+- name: Prometheus - systemd restart
+  systemd:
+    name: prometheus
+    state: restarted
+    enabled: True
+  when: prometheus_manage_service
+
+- name: Prometheus - systemd stop
+  systemd:
+    name: prometheus
+    state: stoped
+    enabled: True
+  when: prometheus_manage_service
+
+- name: Prometheus - systemd start
+  systemd:
+    name: prometheus
+    state: started
+    enabled: True
+  when: prometheus_manage_service
+
+# Alertmanager
+
+- name: Alertmanager - systemd daemon-reload
+  systemd:
+    name: alertmanager
+    enabled: True
+    daemon_reload: yes
+
+- name: Alertmanager - systemd restart
+  systemd:
+    name: alertmanager
+    state: restarted
+    enabled: True
+  when: alertmanager_manage_service
+
+- name: Alertmanager - systemd stop
+  systemd:
+    name: alertmanager
+    state: stoped
+    enabled: True
+  when: alertmanager_manage_service
+
+- name: Alertmanager - systemd start
+  systemd:
+    name: alertmanager
+    state: started
+    enabled: True
+  when: alertmanager_manage_service
+
+# Node Exporter
+
+- name: Node Exporter - systemd daemon-reload
+  systemd:
+    name: node_exporter
+    enabled: True
+    daemon_reload: yes
+
+- name: Node Exporter - systemd restart
+  systemd:
+    name: node_exporter
+    state: restarted
+    enabled: True
+  when: node_exporter_manage_service
+
+- name: Node Exporter - systemd stop
+  systemd:
+    name: node_exporter
+    state: stoped
+    enabled: True
+  when: node_exporter_manage_service
+
+- name: Node Exporter - systemd start
+  systemd:
+    name: node_exporter
+    state: started
+    enabled: True
+  when: node_exporter_manage_service
+

@@ -1,0 +1,44 @@
+---
+
+# Prometheus
+
+prometheus_install: True
+prometheus_manage_service: False
+
+prometheus_user: prometheus
+prometheus_group: prometheus
+
+prometheus_version: 2.1.0
+prometheus_home_dir: /opt/prometheus
+prometheus_conf_dir: /etc/prometheus
+prometheus_data_dir: /srv/prometheus/data
+prometheus_opts: []
+
+prometheus_scrape_interval: 15s
+prometheus_evaluation_interval: 15s
+
+# Alertmanager
+
+alertmanager_install: False
+alertmanager_manage_service: False
+
+alertmanager_user: alertmanager
+alertmanager_group: alertmanager
+alertmanager_version: 0.14.0
+alertmanager_home_dir: /opt/alertmanager
+alertmanager_conf_dir: /etc/alertmanager
+alertmanager_data_dir: /srv/alertmanager/data
+
+# Node Exporter
+
+node_exporter_install: False
+node_exporter_manage_service: False
+
+node_exporter_user: prom_exporter
+node_exporter_group: prom_exporter
+
+node_exporter_version: 0.15.2
+node_exporter_home_dir: /opt/node_exporter
+node_exporter_conf_dir: /etc/node_exporter
+node_exporter_collectors: []
+node_exporter_opts: []

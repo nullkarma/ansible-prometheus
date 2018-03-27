@@ -1,0 +1,5 @@
+groups:
+  - name: "{{ item.key}}"
+    {{ item.value | to_nice_yaml(indent=2) | indent(4) }}
+
+

@@ -1,0 +1,118 @@
+---
+
+- name: Prometheus - Install
+  tags:
+    - install
+  block:
+  - name: Prometheus - Create user
+    user:
+      name: "{{ prometheus_user }}"
+      system: yes
+
+  - name: Prometheus - Create directories
+    file:
+      path: "{{ item }}"
+      owner: "{{ prometheus_user }}"
+      group: "{{ prometheus_group }}"
+      state: directory
+    with_items:
+      - "{{ prometheus_home_dir }}"
+      - "{{ prometheus_data_dir }}"
+      - "{{ prometheus_conf_dir }}"
+      - "{{ prometheus_rule_dir }}"
+
+  - name: Prometheus - Set install dir
+    set_fact:
+      prometheus_install_dir: "{{ prometheus_home_dir }}/prometheus-{{ prometheus_version }}.linux-amd64"
+
+  - name: Prometheus - Check if current version already installed
+    stat:
+      path: "{{ prometheus_install_dir }}"
+    register: prom
+
+  - name: Prometheus - Check if current version already installed
+    debug:
+      msg: "Version {{ prometheus_version }} already installed"
+    when: prom.stat.exists 
+
+  - name: Prometheus - Download tarball 
+    get_url:
+      url: "{{ prometheus_base_url }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+      dest: "/tmp/prometheus-{{ prometheus_version }}.tar.gz"
+    when: not prom.stat.exists 
+
+  - name: Prometheus - Unarchive tarball
+    unarchive:
+      src: "/tmp/prometheus-{{ prometheus_version }}.tar.gz"
+      dest: "{{ prometheus_home_dir }}"
+      remote_src: yes
+      owner: "{{ prometheus_user }}"
+      group: "{{ prometheus_group }}"
+    when: not prom.stat.exists 
+
+  - name: Prometheus - Set link to new version
+    file:
+      src: "{{ prometheus_install_dir }}"
+      dest: "{{ prometheus_home_dir }}/current"
+      state: link
+
+  - name: Prometheus - Set work dir
+    set_fact:
+      prometheus_work_dir: "{{ prometheus_home_dir }}/current"
+
+  - name: Prometheus - create systemd unit file
+    template:
+      src: ../templates/prometheus.systemd.j2
+      dest: /etc/systemd/system/prometheus.service
+    notify:
+      - Prometheus - systemd daemon-reload
+    when: use_systemd
+
+- name: Promeheus - Configure
+  tags:
+    - config
+  block:
+  - name: Prometheus - copy default config
+    copy:
+      src: ../files/prometheus.yml
+      dest: "{{ prometheus_conf_dir }}/prometheus.yml"
+      owner: "{{ prometheus_user }}"
+      group: "{{ prometheus_group }}"
+    notify:
+      - Prometheus - systemd restart
+    when: prometheus_config is not defined
+
+  - name: Prometheus - create user config
+    template:
+      src: ../templates/prometheus.yml.j2
+      dest: "{{ prometheus_conf_dir }}/prometheus.yml"
+      owner: "{{ prometheus_user }}"
+      group: "{{ prometheus_group }}"
+    notify:
+      - Prometheus - syntax check
+      - Prometheus - systemd restart
+    when: prometheus_config is defined
+
+  - name: Prometheus - create env file
+    template:
+      src: ../templates/prometheus/envvars.j2
+      dest: "{{ os_env_dir }}/prometheus"
+      owner: "{{ node_exporter_user }}"
+      group: "{{ node_exporter_group }}"
+    notify:
+      - Node Exporter - systemd restart
+
+  - name: Prometheus - Create alerting rules
+    template:
+      src: ../templates/rules.yml.j2
+      dest: "{{ prometheus_conf_dir }}/alerts/{{ item.key }}.yml"
+      owner: "{{ prometheus_user }}"
+      group: "{{ prometheus_group }}"
+    with_dict: "{{ prometheus_alerts }}"
+    notify:
+      - Prometheus - syntax check
+      - Prometheus - systemd restart
+    when: prometheus_alerts is defined
+    tags:
+      - rules
+

@@ -1,0 +1,24 @@
+---
+
+- name: Set Defaults
+  import_tasks: sane-defaults.yml
+  tags:
+    - always
+
+- name: Install Prometheus
+  import_tasks: install-prometheus.yml
+  when: prometheus_install
+  tags:
+    - prometheus
+
+- name: Install Alertmanager
+  import_tasks: install-alertmanager.yml
+  when: alertmanager_install
+  tags:
+    - alertmanager
+
+- name: Install Node Exporter
+  import_tasks: install-node-exporter.yml
+  when: node_exporter_install
+  tags:
+    - node_exporter

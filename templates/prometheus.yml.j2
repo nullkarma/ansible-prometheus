@@ -1,0 +1,27 @@
+---
+
+global:
+  scrape_interval:     {{ prometheus_scrape_interval }}
+  evaluation_interval: {{ prometheus_evaluation_interval }}
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  {% if prometheus_config.alerting -%}
+    {{ prometheus_config.alerting | to_nice_yaml(indent=2) | indent(2) }}
+  {% endif %}
+
+rule_files:
+  {% if prometheus_config.rule_files -%}
+  {% for rule_file in prometheus_config.rule_files -%}
+  - {{ prometheus_rule_dir}}/{{ rule_file }}.yml
+  {% endfor %}
+  {% endif %}
+
+scrape_configs:
+  - job_name: 'prometheus'
+
+    static_configs:
+      - targets: ['localhost:9090']
+
+  {{ prometheus_config.scrape_configs | to_nice_yaml(indent=2) | indent(2) }}
