@@ -8,9 +8,7 @@
 - name: check if systemd is supported by host
   set_fact:
     use_systemd: True
-  when: ansible_os_family == 'RedHat' and use_systemd is not defined
-  tags:
-    - install
+  when: (ansible_os_family == 'RedHat' or ansible_os_family == 'Debian') and use_systemd is not defined
 
 - name: Set environment dir
   set_fact:
@@ -19,8 +17,12 @@
 
 - name: Set environment dir
   set_fact:
-    os_env_dir: /etc/defaults
+    os_env_dir: /etc/default
   when: ansible_os_family == 'Debian'
+
+- name: Prometheus - Set work dir
+  set_fact:
+    prometheus_work_dir: "{{ prometheus_home_dir }}/current"
 
 - name: Prometheus - Check if download URL is defined
   set_fact:

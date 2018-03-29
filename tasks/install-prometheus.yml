@@ -56,10 +56,6 @@
       dest: "{{ prometheus_home_dir }}/current"
       state: link
 
-  - name: Prometheus - Set work dir
-    set_fact:
-      prometheus_work_dir: "{{ prometheus_home_dir }}/current"
-
   - name: Prometheus - create systemd unit file
     template:
       src: ../templates/prometheus.systemd.j2
@@ -97,8 +93,8 @@
     template:
       src: ../templates/prometheus/envvars.j2
       dest: "{{ os_env_dir }}/prometheus"
-      owner: "{{ node_exporter_user }}"
-      group: "{{ node_exporter_group }}"
+      owner: "{{ prometheus_user }}"
+      group: "{{ prometheus_group }}"
     notify:
       - Node Exporter - systemd restart
 
