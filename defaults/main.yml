@@ -12,7 +12,9 @@ prometheus_version: 2.1.0
 prometheus_home_dir: /opt/prometheus
 prometheus_conf_dir: /etc/prometheus
 prometheus_data_dir: /srv/prometheus/data
-prometheus_opts: []
+prometheus_opts:
+  - '--web.enable-lifecycle'
+  - "--web.external-url=http://{{ ansible_fqdn }}:9090"
 
 prometheus_conf_template: prometheus.yml.j2
 

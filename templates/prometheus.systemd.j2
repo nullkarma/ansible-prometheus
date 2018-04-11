@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=prometheus
 EnvironmentFile={{ os_env_dir }}/prometheus
-ExecStart={{ prometheus_work_dir }}/prometheus --config.file={{ prometheus_conf_dir }}/prometheus.yml --web.external-url=http://prometheus.lab:9090 --storage.tsdb.path={{ prometheus_data_dir }} --web.enable-lifecycle $PROMETHEUS_OPTS
+ExecStart={{ prometheus_work_dir }}/prometheus --config.file={{ prometheus_conf_dir }}/prometheus.yml --storage.tsdb.path={{ prometheus_data_dir }} $PROMETHEUS_OPTS
 ExecReload=/bin/kill -HUP $MAINPID
 ExecStop=/bin/kill $MAINPID
 TimeoutStopSec=600
