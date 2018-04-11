@@ -14,6 +14,8 @@ prometheus_conf_dir: /etc/prometheus
 prometheus_data_dir: /srv/prometheus/data
 prometheus_opts: []
 
+prometheus_conf_template: prometheus.yml.j2
+
 prometheus_scrape_interval: 15s
 prometheus_evaluation_interval: 15s
 
