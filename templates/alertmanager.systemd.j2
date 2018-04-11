@@ -6,7 +6,7 @@ After=network.target
 ExecStart={{ alertmanager_work_dir }}/alertmanager --config.file={{ alertmanager_conf_dir }}/alertmanager.yml --storage.path={{ alertmanager_data_dir }}
 ExecReload=/bin/kill -HUP $MAINPID
 ExecStop=/bin/kill $MAINPID
-User=alertmanager
+User={{ alertmanager_user }}
 
 LimitNOFILE=65536
 [Install]

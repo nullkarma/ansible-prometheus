@@ -3,7 +3,7 @@ Description=prometheus
 After=network.target
 
 [Service]
-User=prometheus
+User={{ prometheus_user }}
 EnvironmentFile={{ os_env_dir }}/prometheus
 ExecStart={{ prometheus_work_dir }}/prometheus --config.file={{ prometheus_conf_dir }}/prometheus.yml --storage.tsdb.path={{ prometheus_data_dir }} $PROMETHEUS_OPTS
 ExecReload=/bin/kill -HUP $MAINPID
