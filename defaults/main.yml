@@ -26,6 +26,8 @@ prometheus_evaluation_interval: 15s
 alertmanager_install: False
 alertmanager_manage_service: False
 
+alertmanager_conf_template: alertmanager.yml.j2
+
 alertmanager_user: alertmanager
 alertmanager_group: alertmanager
 alertmanager_version: 0.14.0
